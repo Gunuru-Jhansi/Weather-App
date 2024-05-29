@@ -1,34 +1,31 @@
-const apiKey = '22907ed0c20788e202c4a82fcbb1d8d4';
-function getWeather() {
-    const cityInput = document.getElementById('cityInput');
-    const city = cityInput.value.trim();
-    cityInput.value = '';
-    fetchWeatherData(city);
-}
+const express = require("express");
+const axios = require("axios");
+const app = express();
+app.set("view engine", "ejs");
 
-function fetchWeatherData(city) {
-    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-    
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            const weatherInfo = document.getElementById('weatherInfo');
-            weatherInfo.style.display = 'block';
-            const weatherDescription = data.weather[0].description;
-            const temperature = data.main.temp;
-            const humidity = data.main.humidity;
-            const weatherHTML = `
-                <h2>Weather in ${city}</h2>
-                <p>Description: ${weatherDescription}</p>
-                <p>Temperature: ${temperature} C</p>
-                <p>Humidity: ${humidity}%</p>
-            `;
-            weatherInfo.innerHTML = weatherHTML;
-        })
-        .catch(error => {
-            const weatherInfo = document.getElementById('weatherInfo');
-            weatherInfo.style.display = 'none';
-            alert('Weather data not found for the given city.');
-            console.error('Error fetching weather data:', error);
-        });
-}
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.render("index", { weather: null, error: null });
+});
+
+
+app.get("/weather", async (req, res) => {
+  const city = req.query.city;
+  const apiKey = "";
+  const APIUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${apiKey}`;
+  let weather;
+  let error = null;
+  try {
+    const response = await axios.get(APIUrl);
+    weather = response.data;
+  } catch (error) {
+    weather = null;
+    error = "Error, Please try again";
+  }
+  res.render("index", { weather, error });
+});
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`App is running on port ${port}`);
+});
